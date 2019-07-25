@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudFormation with Lambda function
+Resources:
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - LambdaRole
+    Properties:
+      Description: Lambda called from Connect
+      #Lambdaを保存したバケットを指定する
+      Code:
+        S3Bucket: connect-xxxxxxxxxxxxx
+        S3Key: lambda_function.zip
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt
+        - LambdaRole
+        - Arn
+      Runtime: python3.6
+      Timeout: 8
+      MemorySize: 128
+      ReservedConcurrentExecutions: 10
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          Effect: Allow
+          Principal:
+            Service:
+              - lambda.amazonaws.com
+          Action:
+            - sts:AssumeRole
+      #Lambda実行とEC2へのアクセスを許可
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+  # Connectから呼び出すためのパーミッション
+  LambdaFunctionInvokePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: LambdaFunction
+    Properties:
+      FunctionName:
+        Ref: LambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount:
+        Ref: AWS::AccountId
+Outputs:
+  # 問い合わせフローに設定するLambdaのARN
+  LambdaARN:
+    Description: ARN of the Lambda function
+    Value:
+      Fn::GetAtt:
+        - LambdaFunction
+        - Arn
