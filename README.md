@@ -1,2 +1,26 @@
 # IntroductionToAmazonConnect
-AmazonConnect入門のサポートページです
+AmazonConnect入門のサポートページです。
+書籍内で使用しているコードを配布しているので、本書を進める際に使用してください。
+各コードの使用用途については以下へ記載します。
+
+## lambda_handler.py
+
+LambdaからEC2を再起動するためのコードです。
+EC2のリージョンとインスタンスID、ステータスコード(start・stop・restart）がAmazonConnect側から渡される想定で書いてます。
+
+## lambda_function.zip
+
+lambda_handler.pyのファイルをzipに固めただけのファイルです。
+CloudFormationでS3からデプロイするときに使ってください
+
+## lambda.yml
+
+  CloudFormationでLambdaと各種IAMロールを作成するためのファイルです。
+  S3にlambda_function.zipをアップロード後、ファイル内のS3バケット名を書き換えてから使ってください。
+  CloudFormationのスタックを削除すればLambdaとIAMロールは削除されるので、不要であればスタックを削除してください。
+
+## start_test.json、stop_test.json、restart_test.json
+
+Lambdaをテストするときに、AmazonConnect側から渡されるJSONを再現したファイルです。
+ファイル内のJSONをLambdaのテストイベントで実行することで、コードやロールが正常に入っているか確認できます。
+初回の稼動確認とうまく動かない場合に、、AmazonConnect側からの接続が失敗しているかLambda周りのコードかロールが失敗しているのか判別するのに使用してください。
